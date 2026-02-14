@@ -28,10 +28,8 @@ Windows Terminal + PowerShell 7 configuration with vim-style pane navigation.
 
 | Key | Action |
 |---|---|
-| `alt+shift+h` | Split left |
-| `alt+shift+j` | Split down |
-| `alt+shift+k` | Split up |
-| `alt+shift+l` | Split right |
+| `ctrl+\` | Vertical split (side by side) |
+| `ctrl+-` | Horizontal split (top/bottom) |
 | `alt+shift+d` | Auto split |
 | `alt+shift+w` | Close pane |
 
