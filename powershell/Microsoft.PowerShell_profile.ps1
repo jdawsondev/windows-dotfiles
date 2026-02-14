@@ -12,5 +12,5 @@ function ... { Set-Location ../.. }
 function prompt {
     $path = $executionContext.SessionState.Path.CurrentLocation.Path
     $leaf = Split-Path $path -Leaf
-    "PS $leaf> "
+    "$([char]27)]9;9;$path$([char]27)\PS $leaf> "
 }
