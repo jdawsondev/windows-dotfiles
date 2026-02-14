@@ -3,6 +3,7 @@
 
 # Aliases
 Set-Alias -Name which -Value Get-Command
+Set-Alias -Name c -Value clear
 
 # Quick navigation
 function .. { Set-Location .. }
