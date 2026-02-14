@@ -1,10 +1,10 @@
 {
     "$help": "https://aka.ms/terminal-documentation",
     "$schema": "https://aka.ms/terminal-profiles-schema",
-    "actions":
+    "actions": 
     [
         {
-            "command":
+            "command": 
             {
                 "action": "copy",
                 "singleLine": false
@@ -16,11 +16,27 @@
             "id": "User.paste"
         },
         {
+            "command": 
+            {
+                "action": "moveFocus",
+                "direction": "right"
+            },
+            "id": "User.moveFocus.right"
+        },
+        {
             "command": "find",
             "id": "User.find"
         },
         {
-            "command":
+            "command": 
+            {
+                "action": "moveFocus",
+                "direction": "down"
+            },
+            "id": "User.moveFocus.down"
+        },
+        {
+            "command": 
             {
                 "action": "splitPane",
                 "split": "auto",
@@ -29,7 +45,7 @@
             "id": "User.splitPane.auto"
         },
         {
-            "command":
+            "command": 
             {
                 "action": "moveFocus",
                 "direction": "left"
@@ -37,15 +53,7 @@
             "id": "User.moveFocus.left"
         },
         {
-            "command":
-            {
-                "action": "moveFocus",
-                "direction": "down"
-            },
-            "id": "User.moveFocus.down"
-        },
-        {
-            "command":
+            "command": 
             {
                 "action": "moveFocus",
                 "direction": "up"
@@ -53,15 +61,7 @@
             "id": "User.moveFocus.up"
         },
         {
-            "command":
-            {
-                "action": "moveFocus",
-                "direction": "right"
-            },
-            "id": "User.moveFocus.right"
-        },
-        {
-            "command":
+            "command": 
             {
                 "action": "splitPane",
                 "split": "right",
@@ -70,7 +70,7 @@
             "id": "User.splitPane.vertical"
         },
         {
-            "command":
+            "command": 
             {
                 "action": "splitPane",
                 "split": "down",
@@ -85,28 +85,32 @@
     ],
     "copyFormatting": "none",
     "copyOnSelect": false,
-    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-    "keybindings":
+    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "keybindings": 
     [
         {
             "id": "User.copy.644BA8F2",
             "keys": "ctrl+c"
         },
         {
-            "id": "User.find",
-            "keys": "ctrl+shift+f"
+            "id": "User.moveFocus.left",
+            "keys": "ctrl+h"
         },
         {
             "id": "User.paste",
             "keys": "ctrl+v"
         },
         {
+            "id": "User.find",
+            "keys": "ctrl+shift+f"
+        },
+        {
             "id": "User.splitPane.auto",
             "keys": "alt+shift+d"
         },
         {
-            "id": "User.moveFocus.left",
-            "keys": "ctrl+h"
+            "id": "User.splitPane.horizontal",
+            "keys": "ctrl+minus"
         },
         {
             "id": "User.moveFocus.down",
@@ -125,24 +129,20 @@
             "keys": "ctrl+\\"
         },
         {
-            "id": "User.splitPane.horizontal",
-            "keys": "ctrl+-"
-        },
-        {
             "id": "User.closePane",
             "keys": "alt+shift+w"
         }
     ],
-    "newTabMenu":
+    "newTabMenu": 
     [
         {
             "type": "remainingProfiles"
         }
     ],
-    "profiles":
+    "profiles": 
     {
         "defaults": {},
-        "list":
+        "list": 
         [
             {
                 "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -191,6 +191,17 @@
                 "hidden": false,
                 "name": "Developer PowerShell for VS 2022",
                 "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "commandline": "pwsh.exe -NoLogo",
+                "environment":
+                {
+                    "POWERSHELL_UPDATECHECK": "Off"
+                },
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "hidden": false,
+                "name": "PowerShell",
+                "source": "Windows.Terminal.PowershellCore"
             }
         ]
     },
