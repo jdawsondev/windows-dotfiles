@@ -9,8 +9,9 @@ function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 
 # Prompt
+Import-Module posh-git
 function prompt {
     $path = $executionContext.SessionState.Path.CurrentLocation.Path
     $leaf = Split-Path $path -Leaf
-    "$([char]27)]9;9;$path$([char]27)\PS $leaf> "
+    "$([char]27)]9;9;$path$([char]27)\PS $leaf$(Write-VcsStatus)> "
 }
