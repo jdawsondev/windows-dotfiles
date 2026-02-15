@@ -10,10 +10,15 @@ function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 
 # Auto-activate Python virtual environments on directory change
+# Only activates when pyvenv.cfg exists alongside the activate script,
+# which confirms the venv was created by python -m venv rather than
+# being a hand-crafted script in a cloned repo.
 function Find-VenvActivate {
     foreach ($dir in '.venv', 'venv', '.env', 'env') {
-        $activate = Join-Path $PWD $dir 'Scripts' 'Activate.ps1'
-        if (Test-Path $activate) { return $activate }
+        $venvRoot = Join-Path $PWD $dir
+        $activate = Join-Path $venvRoot 'Scripts' 'Activate.ps1'
+        $cfg      = Join-Path $venvRoot 'pyvenv.cfg'
+        if ((Test-Path $activate) -and (Test-Path $cfg)) { return $activate }
     }
 }
 
