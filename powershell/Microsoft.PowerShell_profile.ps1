@@ -10,15 +10,43 @@ function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 
 # Auto-activate Python virtual environments on directory change
-# Only activates when pyvenv.cfg exists alongside the activate script,
-# which confirms the venv was created by python -m venv rather than
-# being a hand-crafted script in a cloned repo.
+# Requires explicit trust per directory (like direnv) so that a cloned
+# repo containing a malicious Activate.ps1 cannot execute on cd.
+$Script:TrustedVenvsFile = Join-Path $env:LOCALAPPDATA 'trusted-venvs.txt'
+
+function Get-TrustedVenvs {
+    if (Test-Path $Script:TrustedVenvsFile) {
+        Get-Content $Script:TrustedVenvsFile | Where-Object { $_ -ne '' }
+    }
+}
+
+function Trust-Venv {
+    $dir = (Get-Location).Path
+    $trusted = Get-TrustedVenvs
+    if ($trusted -contains $dir) {
+        Write-Host "Already trusted: $dir"
+    } else {
+        Add-Content -Path $Script:TrustedVenvsFile -Value $dir
+        Write-Host "Trusted: $dir"
+        # Activate immediately now that the directory is trusted
+        $activate = Find-VenvActivate
+        if ($activate) { & $activate }
+    }
+}
+
+function Untrust-Venv {
+    $dir = (Get-Location).Path
+    if (Test-Path $Script:TrustedVenvsFile) {
+        $lines = Get-Content $Script:TrustedVenvsFile | Where-Object { $_ -ne $dir }
+        Set-Content -Path $Script:TrustedVenvsFile -Value $lines
+        Write-Host "Removed trust: $dir"
+    }
+}
+
 function Find-VenvActivate {
     foreach ($dir in '.venv', 'venv', '.env', 'env') {
-        $venvRoot = Join-Path $PWD $dir
-        $activate = Join-Path $venvRoot 'Scripts' 'Activate.ps1'
-        $cfg      = Join-Path $venvRoot 'pyvenv.cfg'
-        if ((Test-Path $activate) -and (Test-Path $cfg)) { return $activate }
+        $activate = Join-Path $PWD $dir 'Scripts' 'Activate.ps1'
+        if (Test-Path $activate) { return $activate }
     }
 }
 
@@ -32,8 +60,13 @@ $ExecutionContext.InvokeCommand.PostCommandLookupAction = {
 
             $activate = Find-VenvActivate
             if ($activate) {
-                if ($env:VIRTUAL_ENV -ne (Split-Path (Split-Path $activate))) {
-                    & $activate
+                $trusted = Get-TrustedVenvs
+                if ($trusted -contains (Get-Location).Path) {
+                    if ($env:VIRTUAL_ENV -ne (Split-Path (Split-Path $activate))) {
+                        & $activate
+                    }
+                } else {
+                    Write-Host "venv found but directory not trusted. Run Trust-Venv to allow activation."
                 }
             } elseif ($env:VIRTUAL_ENV) {
                 deactivate
