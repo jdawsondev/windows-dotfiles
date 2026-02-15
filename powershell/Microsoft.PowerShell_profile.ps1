@@ -21,32 +21,51 @@ function Get-TrustedVenvs {
 }
 
 function Trust-Venv {
-    $dir = (Get-Location).Path
+    $activate = Find-VenvActivate
+    if (-not $activate) {
+        Write-Host "No virtual environment found in or above this directory."
+        return
+    }
+    $projectRoot = Split-Path (Split-Path (Split-Path $activate))
     $trusted = Get-TrustedVenvs
-    if ($trusted -contains $dir) {
-        Write-Host "Already trusted: $dir"
+    if ($trusted -contains $projectRoot) {
+        Write-Host "Already trusted: $projectRoot"
     } else {
-        Add-Content -Path $Script:TrustedVenvsFile -Value $dir
-        Write-Host "Trusted: $dir"
-        # Activate immediately now that the directory is trusted
-        $activate = Find-VenvActivate
-        if ($activate) { & $activate }
+        Add-Content -Path $Script:TrustedVenvsFile -Value $projectRoot
+        Write-Host "Trusted: $projectRoot"
+        try {
+            & $activate
+            $Script:VenvProjectRoot = $projectRoot
+        } catch {
+            Write-Warning "Failed to activate venv: $($_.Exception.Message)"
+        }
     }
 }
 
 function Untrust-Venv {
-    $dir = (Get-Location).Path
+    $activate = Find-VenvActivate
+    if ($activate) {
+        $projectRoot = Split-Path (Split-Path (Split-Path $activate))
+    } else {
+        $projectRoot = (Get-Location).Path
+    }
     if (Test-Path $Script:TrustedVenvsFile) {
-        $lines = Get-Content $Script:TrustedVenvsFile | Where-Object { $_ -ne $dir }
+        $lines = Get-Content $Script:TrustedVenvsFile | Where-Object { $_ -ne $projectRoot }
         Set-Content -Path $Script:TrustedVenvsFile -Value $lines
-        Write-Host "Removed trust: $dir"
+        Write-Host "Removed trust: $projectRoot"
     }
 }
 
+$Script:VenvProjectRoot = $null
+
 function Find-VenvActivate {
-    foreach ($dir in '.venv', 'venv', '.env', 'env') {
-        $activate = Join-Path $PWD $dir 'Scripts' 'Activate.ps1'
-        if (Test-Path $activate) { return $activate }
+    $current = (Get-Location).Path
+    while ($current -and $current -ne [System.IO.Path]::GetPathRoot($current)) {
+        foreach ($dir in '.venv', 'venv', '.env', 'env') {
+            $activate = Join-Path $current $dir 'Scripts' 'Activate.ps1'
+            if (Test-Path $activate) { return $activate }
+        }
+        $current = Split-Path $current -Parent
     }
 }
 
@@ -60,16 +79,35 @@ $ExecutionContext.InvokeCommand.PostCommandLookupAction = {
 
             $activate = Find-VenvActivate
             if ($activate) {
+                $venvRoot = Split-Path (Split-Path $activate)
+                $projectRoot = Split-Path $venvRoot
                 $trusted = Get-TrustedVenvs
-                if ($trusted -contains (Get-Location).Path) {
-                    if ($env:VIRTUAL_ENV -ne (Split-Path (Split-Path $activate))) {
-                        & $activate
+                if ($trusted -contains $projectRoot) {
+                    try {
+                        if ($env:VIRTUAL_ENV -ne $venvRoot) {
+                            & $activate
+                            $Script:VenvProjectRoot = $projectRoot
+                        }
+                    } catch {
+                        Write-Warning "Failed to activate venv: $($_.Exception.Message)"
                     }
                 } else {
                     Write-Host "venv found but directory not trusted. Run Trust-Venv to allow activation."
                 }
             } elseif ($env:VIRTUAL_ENV) {
-                deactivate
+                $stillInProject = $Script:VenvProjectRoot -and
+                    (Get-Location).Path.StartsWith($Script:VenvProjectRoot,
+                        [System.StringComparison]::OrdinalIgnoreCase)
+                if (-not $stillInProject) {
+                    try {
+                        if (Get-Command deactivate -ErrorAction SilentlyContinue) {
+                            deactivate
+                        }
+                    } catch {
+                        Write-Warning "Failed to deactivate venv: $($_.Exception.Message)"
+                    }
+                    $Script:VenvProjectRoot = $null
+                }
             }
         }.GetNewClosure()
     }
